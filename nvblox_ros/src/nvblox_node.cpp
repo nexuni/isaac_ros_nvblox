@@ -149,16 +149,14 @@ NvbloxNode::NvbloxNode()
 
   RCLCPP_INFO(
     get_logger(),
-    "Outputting results (as requested) to: " + output_dir_);
+    "Outputting results (as requested) to: %s", output_dir_.c_str());
 
   // Start the message statistics
   depth_frame_statistics_.Start();
   rgb_frame_statistics_.Start();
 
-  RCLCPP_INFO_STREAM(
-    get_logger(), "Started up nvblox node in frame " <<
-      global_frame_ << " and voxel size " <<
-      voxel_size_);
+  RCLCPP_INFO(
+    get_logger(), "Started up nvblox node in frame %s and voxel size %f", global_frame_.c_str(), voxel_size_);
 
   // Set state.
   last_tsdf_update_time_ = rclcpp::Time(0ul, get_clock()->get_clock_type());
@@ -178,14 +176,14 @@ void NvbloxNode::depthImageCallback(
   auto & clk = *this->get_clock();
   RCLCPP_INFO_THROTTLE(
     this->get_logger(), clk, kPublishPeriodMs,
-    "Depth frame statistics: \n" +
+    "Depth frame statistics: \n%s",
     libstatistics_collector::moving_average_statistics::
     StatisticsDataToString(
-      depth_frame_statistics_.GetStatisticsResults()));
+      depth_frame_statistics_.GetStatisticsResults()).c_str());
 
   RCLCPP_INFO_THROTTLE(
     this->get_logger(), clk, kPublishPeriodMs,
-    "Timing statistics: \n" + nvblox::timing::Timing::Print());
+    "Timing statistics: \n%s", nvblox::timing::Timing::Print().c_str());
 
   timing::Timer ros_total_timer("ros/total");
 
@@ -217,10 +215,10 @@ void NvbloxNode::colorImageCallback(
   auto & clk = *this->get_clock();
   RCLCPP_INFO_THROTTLE(
     this->get_logger(), clk, kPublishPeriodMs,
-    "RGB frame statistics: \n" +
+    "RGB frame statistics: \n%s", 
     libstatistics_collector::moving_average_statistics::
     StatisticsDataToString(
-      rgb_frame_statistics_.GetStatisticsResults()));
+      rgb_frame_statistics_.GetStatisticsResults()).c_str());
 
   timing::Timer ros_total_timer("ros/total");
 
@@ -492,7 +490,7 @@ void NvbloxNode::savePly(
   io::outputMeshLayerToPly(
     mapper_->mesh_layer(),
     output_dir_ + "/ros2_mesh.ply");
-  RCLCPP_INFO(get_logger(), "Output PLY files to " + output_dir_);
+  RCLCPP_INFO(get_logger(), "Output PLY files to %s", output_dir_.c_str());
 }
 
 }  // namespace nvblox
