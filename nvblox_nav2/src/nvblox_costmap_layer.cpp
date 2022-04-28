@@ -16,6 +16,12 @@
 
 #include "nvblox_nav2/nvblox_costmap_layer.hpp"
 
+// Register the macro for this layer
+#include "pluginlib/class_list_macros.hpp"
+PLUGINLIB_EXPORT_CLASS(nvblox::nav2::NvbloxCostmapLayer, nav2_costmap_2d::Layer)
+
+using namespace std::literals::chrono_literals;
+
 namespace nvblox
 {
 namespace nav2
@@ -198,7 +204,3 @@ bool NvbloxCostmapLayer::lookupInSlice(
 
 }  // namespace nav2
 }  // namespace nvblox
-
-// Register the macro for this layer
-#include "pluginlib/class_list_macros.hpp"
-PLUGINLIB_EXPORT_CLASS(nvblox::nav2::NvbloxCostmapLayer, nav2_costmap_2d::Layer)
