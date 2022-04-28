@@ -25,27 +25,33 @@ NvbloxCostmapLayer::NvbloxCostmapLayer() {}
 
 void NvbloxCostmapLayer::onInitialize()
 {
-  enabled_ = node_->declare_parameter(name_ + "." + "enabled", true);
+  auto node = node_.lock();
+  if (!node) {
+    throw std::runtime_error{"Failed to lock node"};
+  }
 
-  // Get the path of the map slice topic.
-  std::string nvblox_map_slice_topic = "/nvblox_node/map_slice";
+  declareParameter("enabled", rclcpp::ParameterValue(true));
+  node->get_parameter(name_ + "." + "enabled", enabled_);
 
-  nvblox_map_slice_topic = node_->declare_parameter<std::string>(
-    getFullName("nvblox_map_slice_topic"), nvblox_map_slice_topic);
-  max_obstacle_distance_ = node_->declare_parameter<float>(
-    getFullName("max_obstacle_distance"), max_obstacle_distance_);
-  inflation_distance_ = node_->declare_parameter<float>(
-    getFullName("inflation_distance"), inflation_distance_);
-  max_cost_value_ = node_->declare_parameter<uint8_t>(
-    getFullName("max_cost_value"), max_cost_value_);
+  declareParameter("nvblox_map_slice_topic", rclcpp::ParameterValue("/nvblox_node/map_slice"));
+  node->get_parameter(getFullName("nvblox_map_slice_topic"), nvblox_map_slice_topic);
+
+  declareParameter("max_obstacle_distance", rclcpp::ParameterValue(1.0));
+  node->get_parameter(getFullName("max_obstacle_distance"), max_obstacle_distance_);
+
+  declareParameter("inflation_distance", rclcpp::ParameterValue(0.5));
+  node->get_parameter(getFullName("inflation_distance"), inflation_distance_);
+
+  declareParameter("max_cost_value", rclcpp::ParameterValue(252));
+  node->get_parameter(getFullName("max_cost_value"), max_cost_value_);
 
   RCLCPP_INFO_STREAM(
-    node_->get_logger(),
+    logger_,
     "Name: " << name_ << " Topic name: " << nvblox_map_slice_topic <<
       " Max obstacle distance: " << max_obstacle_distance_);
 
   // Add subscribers to the nvblox message.
-  slice_sub_ = node_->create_subscription<nvblox_msgs::msg::DistanceMapSlice>(
+  slice_sub_ = node->create_subscription<nvblox_msgs::msg::DistanceMapSlice>(
     nvblox_map_slice_topic, 1,
     std::bind(
       &NvbloxCostmapLayer::sliceCallback, this,
@@ -70,7 +76,7 @@ void NvbloxCostmapLayer::updateBounds(
   }
 
   RCLCPP_DEBUG(
-    node_->get_logger(),
+    logger_,
     "Update bounds: Min x: %f Min y: %f Max x: %f Max y: %f", *min_x,
     *min_y, *max_x, *max_y);
 }
@@ -89,7 +95,7 @@ void NvbloxCostmapLayer::updateCosts(
     return;
   }
   RCLCPP_DEBUG(
-    node_->get_logger(),
+    logger_,
     "Update costs: Min i: %d Min j: %d Max i: %d Max j: %d", min_i,
     min_j, max_i, max_j);
   // Copy over the relevant values to the internal costmap.
@@ -101,7 +107,7 @@ void NvbloxCostmapLayer::updateCosts(
   unsigned int size_x = getSizeInCellsX(), size_y = getSizeInCellsY();
 
   RCLCPP_DEBUG(
-    node_->get_logger(), "Size in cells x: %d size in cells y: %d",
+    logger_, "Size in cells x: %d size in cells y: %d",
     size_x, size_y);
 
   for (int j = min_j; j < max_j; j++) {
@@ -142,13 +148,13 @@ void NvbloxCostmapLayer::updateCosts(
   // This combines the master costmap with the current costmap by taking
   // the max across all costmaps.
   updateWithMax(master_grid, min_i, min_j, max_i, max_j);
-  RCLCPP_DEBUG(node_->get_logger(), "Finished updating.");
+  RCLCPP_DEBUG(logger_, "Finished updating.");
 }
 
 void NvbloxCostmapLayer::sliceCallback(
   const nvblox_msgs::msg::DistanceMapSlice::ConstSharedPtr slice)
 {
-  RCLCPP_DEBUG(node_->get_logger(), "Slice callback.");
+  RCLCPP_DEBUG(logger_, "Slice callback.");
   slice_ = slice;
 }
 
