@@ -24,7 +24,7 @@ namespace nvblox
 namespace nav2
 {
 
-class NvbloxCostmapLayer : public CostmapLayer
+class NvbloxCostmapLayer : public nav2_costmap_2d::CostmapLayer
 {
 public:
   NvbloxCostmapLayer();
