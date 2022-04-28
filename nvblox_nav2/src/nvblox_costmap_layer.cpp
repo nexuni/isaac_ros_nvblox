@@ -29,6 +29,7 @@ void NvbloxCostmapLayer::onInitialize()
   if (!node) {
     throw std::runtime_error{"Failed to lock node"};
   }
+  std::string nvblox_map_slice_topic = "/nvblox_node/map_slice";
 
   declareParameter("enabled", rclcpp::ParameterValue(true));
   node->get_parameter(name_ + "." + "enabled", enabled_);
