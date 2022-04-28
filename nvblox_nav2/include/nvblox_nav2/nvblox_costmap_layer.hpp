@@ -24,7 +24,7 @@ namespace nvblox
 namespace nav2
 {
 
-class NvbloxCostmapLayer : public nav2_costmap_2d::CostmapLayer
+class NvbloxCostmapLayer : public CostmapLayer
 {
 public:
   NvbloxCostmapLayer();
@@ -42,6 +42,8 @@ public:
 
   void sliceCallback(
     const nvblox_msgs::msg::DistanceMapSlice::ConstSharedPtr slice);
+    
+  virtual bool isClearable() {return true;}
 
 private:
   bool lookupInSlice(const Eigen::Vector2f & pos, float * distance);
